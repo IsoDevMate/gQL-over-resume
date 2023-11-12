@@ -1,25 +1,38 @@
-const express = require("express");
+
+  const { GraphQLError } = require('graphql');
+const express = require('express');
 const app = express();
-require("dotenv").config();
+const fs = require('fs');
+const path = require('path');
+const json = express.json;
 const cors = require("cors");
-const mongoose=require('mongoose')
-const connectDB=require('./db')
-const port = process.env.PORT || 5050;
+const gql = require("graphql-tag");
+const { ApolloServer } = require("@apollo/server");
+const { buildSubgraphSchema } = require("@apollo/subgraph");
+const { expressMiddleware } = require("@apollo/server/express4");
+const resolvers = require("./resolvers.js");
+const { readFileSync } = require("fs");
+const { resolve, dirname } = require("path");
+const { fileURLToPath } = require('url');
+
+require('dotenv').config();
+const mongoose = require("mongoose");
+const { typeDefs } = require('./schema.js');
+const { connectDB } = require('./db.js');
+const port = process.env.PORT || 4000
+
+
 const bodyParser = require("body-parser");
-const  routes = require("./routes/routers");
+//const  routes = require("./routes/routers");
 
 
-// Check that all required .env variables exist
-if (!process.env["ENVIRONMENT"]) {
-  console.error(".env file missing required field \"ENVIRONMENT\".");
-  process.exit(1);
-} else if (!process.env["SQUARE_ACCESS_TOKEN"]) {
-  console.error(".env file missing required field \"SQUARE_ACCESS_TOKEN\".");
-  process.exit(1);
-} else if (!process.env["SQUARE_LOCATION_ID"]) {
-  console.error(".env file missing required field \"SQUARE_LOCATION_ID\".");
-  process.exit(1);
-}
+
+
+__dirname = dirname(__filename);
+
+
+// connect Database
+connectDB(); 
 
 
 app.use(express.json());
@@ -27,25 +40,53 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(bodyParser.json());
 
- //Entry point for the app. Will redirect to the /services endpoint.
- 
-app.get("/", async (req, res, next) => {
-  res.send("Welcome to our gql backend backend API")
-  res.redirect("/resume");
+
+async function startServer() {
+try{
+  const typeDefs = gql(fs.readFileSync(path.resolve(__dirname, 'schema.graphql'), 'utf-8'));
+
+  const schema = buildSubgraphSchema({ typeDefs, resolvers });
+const server = new ApolloServer({
+  schema
 });
+await server.start();
 
-// connect Database
-connectDB(); 
-
-// apis
-app.use('/api', routes);
+//entry point to our graphQl api
 
 
-// test db connection
+app.use(
+  '/graphql',
+  cors(),
+  json(),
+  expressMiddleware(server),
+  routes
+);
+
+
+
+
+} catch (error) {
+    if (error instanceof GraphQLError) {
+      console.log(error.message + `\n in ${error.source?.name}`)
+    }
+    throw error
+  }
+
+ //  documents= typeDefs
+
+
+
+
+
+// start the Express server
 mongoose.connection.once('open',()=>{
-  console.log(`Connected Successfully to the Database: ${mongoose.connection.name}`)
-  app.listen(port, () => {
-    console.log(`app is running at localhost:${port}`);
-  });
-  })
-
+    console.log(`Connected Successfully to the Database: ${mongoose.connection.name}`)
+    app.listen(port, () => {
+      console.log(`app is running at localhost:${port}`);
+    });
+    })
+    .on('error', (error) => {
+      console.log(`Connection error: ${error.message}`);
+    });
+}
+startServer();

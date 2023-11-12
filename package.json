@@ -15,7 +15,18 @@
     "body-parser": "^1.20.2",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
-    "mongoose": "^8.0.0"
+    "mongoose": "^8.0.0",
+    "@apollo/server": "^4.9.5",
+    "@apollo/subgraph": "^2.5.6",
+    "@graphql-tools/graphql-file-loader": "^8.0.0",
+    "@graphql-tools/load": "^8.0.0",
+    "@graphql-tools/schema": "^10.0.0",
+    "cors": "^2.8.5",
+    "fs": "^0.0.1-security",
+    "graphql": "^16.8.1",
+    "graphql-tag": "^2.12.6",
+    "mongodb": "^6.2.0",
+    "nodemon": "^3.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
