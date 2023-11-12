@@ -1,4 +1,6 @@
-export const typeDefs = `#graphql
+//const {buildSchema,printSchema} = require('graphql');
+
+const typeDefs = `#graphql
   type PersonalInfo {
   name: String!
   age: Int!
@@ -87,3 +89,6 @@ type Query {
   
 `;
 
+//const schema = buildSchema(typeDefs);
+//console.log(printSchema(schema));
+module.exports = { typeDefs };

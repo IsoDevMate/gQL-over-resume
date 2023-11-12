@@ -17,7 +17,7 @@ const { fileURLToPath } = require('url');
 
 require('dotenv').config();
 const mongoose = require("mongoose");
-const { typeDefs } = require('./schema.js');
+const { typeDefs } = require('./models/schema.js');
 const { connectDB } = require('./db.js');
 const port = process.env.PORT || 4000
 
@@ -43,7 +43,7 @@ app.use(bodyParser.json());
 
 async function startServer() {
 try{
-  const typeDefs = gql(fs.readFileSync(path.resolve(__dirname, 'schema.graphql'), 'utf-8'));
+  const typeDefs = gql(fs.readFileSync(path.resolve(__dirname, './schema.graphql'), 'utf-8'));
 
   const schema = buildSubgraphSchema({ typeDefs, resolvers });
 const server = new ApolloServer({

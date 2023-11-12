@@ -75,6 +75,7 @@ type Mutation {
   updateResume(personalInfo: PersonalInfo!, education: [Education!]!, experience: [Experience!]!, skills: [Skills!]!, activities: [Activitiies!]!, projects: [Projects!]!): Resume!
 
 }
+
 type Query {
     personalInfo: PersonalInfo!
     education: [Education!]!

@@ -102,7 +102,25 @@ const resolvers = {
             })
             await newExperience.save()
             return newExperience
-        }
+        },
+        updateProject: async (_, args) => {
+            const { projectName, description, link } = args;
+            const result = await Projects.findOneAndUpdate({ projectName }, { description, link }, { new: true });
+            return result;
+          },
+          deleteProject: async (_, args) => {
+            const { projectName } = args;
+            const result = await Projects.findOneAndDelete({ projectName });
+            return result;
+          },
+        async createSkills(_,args){
+            const newSkills=new Skills({
+                skillName:args.skillName,
+                skillLevel:args.skillLevel
+            })
+            await newSkills.save()
+            return newSkills
 
     }
+}
 }
