@@ -12,6 +12,9 @@ const { expressMiddleware } = require("@apollo/server/express4");
 const resolvers = require("./resolvers.js");
 //const { readFileSync } = require("fs");
 const {  dirname } = require("path");
+const { rule, shield,allow,deny,and,or,inputRule } = require('graphql-shield')
+const { applymiddleware }=require('graphql-middleware')
+const {graphqlHTTP} = require('express-graphql');
 
 
 require('dotenv').config();
@@ -38,6 +41,38 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(bodyParser.json());
+
+
+
+const permissions = shield({
+  Query: {
+    /*
+    personalInfo: allow,
+    education: allow,
+    experience: allow,
+    skills: allow,
+    activities: allow,
+    projects: allow,
+    resume: allow,
+    */
+
+
+    publicResource: isGuest,
+    // Allow all authenticated users to view protected resources
+    protectedResource: isUser,
+    // Allow only admin users to view admin resources
+    adminResource: isAdmin
+
+  },
+  Mutation:{
+
+    
+  }
+})
+
+
+
+
 
 
 async function startServer() {
