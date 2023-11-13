@@ -1,19 +1,18 @@
-
-  const { GraphQLError } = require('graphql');
+const { GraphQLError } = require('graphql');
 const express = require('express');
 const app = express();
 const fs = require('fs');
 const path = require('path');
 const json = express.json;
 const cors = require("cors");
-const gql = require("graphql-tag");
+const { gql }= require("graphql-tag");
 const { ApolloServer } = require("@apollo/server");
 const { buildSubgraphSchema } = require("@apollo/subgraph");
 const { expressMiddleware } = require("@apollo/server/express4");
 const resolvers = require("./resolvers.js");
-const { readFileSync } = require("fs");
-const { resolve, dirname } = require("path");
-const { fileURLToPath } = require('url');
+//const { readFileSync } = require("fs");
+const {  dirname } = require("path");
+
 
 require('dotenv').config();
 const mongoose = require("mongoose");
@@ -59,7 +58,6 @@ app.use(
   cors(),
   json(),
   expressMiddleware(server),
-  routes
 );
 
 

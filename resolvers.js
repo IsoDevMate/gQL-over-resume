@@ -2,7 +2,7 @@
 const { ObjectId } = require("mongodb");
 
 
-const {Experience,PersonalInfo,Resume,Education,Activities,Skills}=require('./models/schema')
+const {Experience,PersonalInfo,Resume,Education,Activities,Skills,Projects}=require('./models/schema')
 
 const resolvers = {
     //queries
@@ -39,35 +39,41 @@ const resolvers = {
     
     //mutations
     Mutations:{
-       async createPersonalInfo(_,args){
-            const newPersonalInfo=new PersonalInfo({
-                name:args.name,
-                age:args.age,
-                email:args.email,
-                phoneNumber:args.phoneNumber,
-                linkedIn:args.linkedIn,
-                githubUsername:args.githubUsername,
-                githubProfileImage:args.githubProfileImage,
-                personalSiteLink:args.personalSiteLink,
-                currentCity:args.currentCity,
-                pets:args.pets
-            })
-            await newPersonalInfo.save()
-            return newPersonalInfo
-        },
-      async  updatePersonalInfo(_,args){
-           const query = { _id: ObjectId(args.id) };
-            const update = await PersonalInfo.updateOne(
-                query,
-                { $set: { ...args } }
-              );
+        createPersonalInfo: async (_, args) => {
+            try {
+              const newPersonalInfo = new PersonalInfo({
+                name: args.name,
+                age: args.age,
+                email: args.email,
+                phoneNumber: args.phoneNumber,
+                linkedIn: args.linkedIn,
+                githubUsername: args.githubUsername,
+                githubProfileImage: args.githubProfileImage,
+                personalSiteLink: args.personalSiteLink,
+                currentCity: args.currentCity,
+                pets: args.pets,
+              });
         
-              if (update.acknowledged)
-                return await PersonalInfo.findOne(query);
-                else
-                return null;
-        },
-         async createEducation(_,args){
+              // Save the newPersonalInfo document to the database
+              const savedPersonalInfo = await newPersonalInfo.save();
+        
+              // Return the savedPersonalInfo
+              return savedPersonalInfo;
+            } catch (error) {
+              // Log the error for debugging
+              console.error('Error creating personal info:', error);
+        
+              // Throw an error to be caught by GraphQL and returned as part of the response
+              throw new Error('Failed to create personal info');
+            }
+          },
+        async updatePersonalInfo(_, args) {
+            const { age, email, githubProfileImage, personalSiteLink, currentCity, pets } = args;
+            const result = await PersonalInfo.findOneAndUpdate({ email }, { age, email, githubProfileImage, personalSiteLink, currentCity, pets }, { new: true });
+            if(!result) throw new Error('Personal Info not found');
+            return result;
+          },
+         createEducation: async(_,args)=>{
                 const newEducation=new Education({
                  institution:args.institution,
                  degree:args.degree,
@@ -77,22 +83,22 @@ const resolvers = {
                 })
                 await newEducation.save()
                 return newEducation
-          },
-            async updateEducation(_,args){
+          }
+           /* async updateEducation(_,args){
                 const educationindex=Education.findIndex(education=>education.institution===args.institution)
                 if (educationindex === -1) throw new Error('INstitution not found')
                     const query = { _id: ObjectId(args.id) };
                     const update = await Education.updateOne(
                         query,
-                        { $set: { ...args } }
+                       
                     );
                 
                     if (update.acknowledged)
                         return await Education.findOne(query);
                         else
                         return null;
-            },
-       async createExperience(_,args){
+            }*/,
+     createExperience: async(_,args)=>{
             const newExperience=new Experience({
                 company:args.company,
                 position:args.position,
@@ -103,24 +109,46 @@ const resolvers = {
             await newExperience.save()
             return newExperience
         },
+        async updateExperience(_, args) {
+            const { company, position, startDate, endDate, responsibilities } = args;
+            const result = await Experience.findOneAndUpdate({ company }, { company, position, startDate, endDate, responsibilities }, { new: true });
+            if(!result) throw new Error('Experience not found');
+            return result;
+          },
+      createProject: async (_, args) => {
+            const { projectName, description, link } = args;
+            const newProject = new Projects({
+              projectName,
+              description,
+              link,
+            });
+            await newProject.save();
+            return newProject;
+          },
         updateProject: async (_, args) => {
             const { projectName, description, link } = args;
             const result = await Projects.findOneAndUpdate({ projectName }, { description, link }, { new: true });
+            if(!result) throw new Error('Project not found');
             return result;
           },
           deleteProject: async (_, args) => {
             const { projectName } = args;
             const result = await Projects.findOneAndDelete({ projectName });
+            if(!result) throw new Error('Project not found');
             return result;
           },
-        async createSkills(_,args){
+        createSkills: async(_,args)=>{
             const newSkills=new Skills({
                 skillName:args.skillName,
                 skillLevel:args.skillLevel
             })
             await newSkills.save()
             return newSkills
-
     }
+
 }
 }
+
+module.exports=resolvers
+
+
