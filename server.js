@@ -13,8 +13,8 @@ const resolvers = require("./resolvers.js");
 //const { readFileSync } = require("fs");
 const {  dirname } = require("path");
 const { rule, shield,allow,deny,and,or,inputRule } = require('graphql-shield')
-const { applymiddleware }=require('graphql-middleware')
-const {graphqlHTTP} = require('express-graphql');
+const { applyMiddleware }=require('graphql-middleware')
+//const {graphqlHTTP} = require('express-graphql');
 
 
 require('dotenv').config();
@@ -42,34 +42,67 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(bodyParser.json());
 
+const isAuthenticated=rule()(async(parent,args,ctx,info)=>{
+    return ctx.user!==null
+}
+)
 
+const isadmin=rule()(async(parent,args,ctx,info)=>{
+  const user=await user.find(({id})=>id===ctx.user.id)
+  return user && user.role==='admin'
+})
 
+const isGuest=rule()(async(parent,args,ctx,info)=>{
+  return ctx.user===null
+})
+
+const isUser=rule()(async(parent,args,ctx,info)=>{
+  const user=await user.find(({id})=>id===ctx.user.id)
+  return user
+})
+
+const isNotRegistered=rule()(async(parent,args,ctx,info)=>{
+  const user = await User.find(({id}) => id === args.id);
+  return !user
+}
+)
 const permissions = shield({
   Query: {
-    /*
-    personalInfo: allow,
-    education: allow,
-    experience: allow,
-    skills: allow,
-    activities: allow,
-    projects: allow,
-    resume: allow,
-    */
+    personalInfo:allow,
+    education:deny,
+    experience:allow,
+    skills:allow,
+    activities:allow,
+    projects:allow,
+   
 
-
+    // Allow all users to view public resources
+    me:isAuthenticated,
+    // Allow all users to view public resources
     publicResource: isGuest,
     // Allow all authenticated users to view protected resources
     protectedResource: isUser,
     // Allow only admin users to view admin resources
-    adminResource: isAdmin
+    adminResource: isadmin
 
   },
   Mutation:{
-
-    
+     // Require authentication for all queries
+ '*': isAuthenticated,
+    createuser:isNotRegistered,
+    createpost:isadmin
   }
 })
 
+// Define a function to authenticate requests
+function authenticate(req) {
+  // Implement your custom authentication logic here
+  // For example, you might check if the user is logged in and has the necessary permissions to access the requested data
+  // If the user is not authenticated, throw an error
+  if (!req.user) {
+    throw new Error('You must be logged in to access this resource')
+  }
+}
 
 
 
@@ -79,9 +112,22 @@ async function startServer() {
 try{
   const typeDefs = gql(fs.readFileSync(path.resolve(__dirname, './schema.graphql'), 'utf-8'));
 
-  const schema = buildSubgraphSchema({ typeDefs, resolvers });
+  const schema = buildSubgraphSchema({ typeDefs, resolvers,
+    context: (req) => {
+      // Call the authenticate function to verify that the request is authenticated
+      authenticate(req)
+      // Add the authenticated user to the context object, so it can be accessed by the resolver functions
+      return {
+        user: req.user,
+      }
+    },
+  
+    });
+
+    const schemaWithMiddleware = applyMiddleware(schema,permissions)
+
 const server = new ApolloServer({
-  schema
+  schema:schemaWithMiddleware
 });
 await server.start();
 

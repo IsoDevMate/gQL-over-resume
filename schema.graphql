@@ -8,6 +8,8 @@ type Query {
     activities: [Activitiies!]!
     projects: [Projects!]!
     resume: Resume!
+    me: User! @auth
+    users: [User!]! 
     }
 
   type PersonalInfo {
@@ -65,6 +67,9 @@ type Resume {
 }
 
 type Mutation {
+  login(email: String!, password: String!): AuthPayload!
+
+  
   createPersonalInfo(name: String!, age: Int!, email: String!, phoneNumber: String, linkedIn: String, githubUsername: String!, githubProfileImage: String!, personalSiteLink: String, currentCity: String!, pets: [String!]!): PersonalInfo!
   updatePersonalInfo(name: String!, age: Int!, email: String!, phoneNumber: String, linkedIn: String, githubUsername: String!, githubProfileImage: String!, personalSiteLink: String, currentCity: String!, pets: [String!]!): PersonalInfo!
   createProject(projectName: String!, description: String!, link: String!): Projects!
@@ -80,3 +85,32 @@ type Mutation {
     query: Query
     mutation: Mutation
   }
+
+
+
+directive @auth on FIELD_DEFINITION
+type User {
+  id: ID!
+  name: String!
+}
+
+type AuthPayload {
+  token: String!
+}
+
+enum role {
+  ADMIN
+  USER
+  GUEST
+  }
+
+  input UserInput {
+    id: ID!
+    name: String!
+  }
+
+  input AuthPayloadInput {
+    token: String!
+  }
+
+  

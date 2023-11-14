@@ -2,7 +2,7 @@
 const { ObjectId } = require("mongodb");
 
 
-const {Experience,PersonalInfo,Resume,Education,Activities,Skills,Projects}=require('./models/schema')
+const {Experience,PersonalInfo,Resume,Education,Activities,Skills,Projects,User}=require('./models/schema')
 
 const resolvers = {
     //queries
@@ -34,8 +34,14 @@ const resolvers = {
         Resume:async(_,args)=>{
             const resume=await Resume.findOne({email:args.email});
             return resume;
+        },
+        User:async(_,{id,name})=>{
+            const user=await User.findOne({id,name});
+            return user;
+
         }
     },
+    
     
     //mutations
     Mutations:{
@@ -83,7 +89,21 @@ const resolvers = {
                 })
                 await newEducation.save()
                 return newEducation
+          },
+          createUser: async (_,{input} ) => {
+            const { name, email, password } = input;
+            const newUser = new User({
+              id: new ObjectId(),
+              role: 'admin' || 'user' || 'guest',
+              name,
+              email,
+              password,
+            });
+            await newUser.save();
+            return newUser;
           }
+
+            
            /* async updateEducation(_,args){
                 const educationindex=Education.findIndex(education=>education.institution===args.institution)
                 if (educationindex === -1) throw new Error('INstitution not found')
