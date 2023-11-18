@@ -1,16 +1,17 @@
 
 
 type Query {
-    personalInfo: PersonalInfo!
-    education: [Education!]!
-    experience: [Experience!]!
-    skills: [Skills!]!
-    activities: [Activitiies!]!
-    projects: [Projects!]!
-    resume: Resume!
-    me: User! @auth
-    users: [User!]! 
-    }
+  personalInfo: PersonalInfo!
+  education: [Education!]!
+  experience: [Experience!]!
+  skills: [Skills!]!
+  activities: [Activitiies!]!
+  projects: [Projects!]!
+  resume: Resume!
+  me: User! @auth
+  users: [User!]! 
+}
+
 
   type PersonalInfo {
   name: String!
@@ -68,8 +69,8 @@ type Resume {
 
 type Mutation {
   login(email: String!, password: String!): AuthPayload!
-
-  
+  createuser(input: UserInput!): User!
+  createpost(input: PostInput!): Post!
   createPersonalInfo(name: String!, age: Int!, email: String!, phoneNumber: String, linkedIn: String, githubUsername: String!, githubProfileImage: String!, personalSiteLink: String, currentCity: String!, pets: [String!]!): PersonalInfo!
   updatePersonalInfo(name: String!, age: Int!, email: String!, phoneNumber: String, linkedIn: String, githubUsername: String!, githubProfileImage: String!, personalSiteLink: String, currentCity: String!, pets: [String!]!): PersonalInfo!
   createProject(projectName: String!, description: String!, link: String!): Projects!
@@ -80,6 +81,21 @@ type Mutation {
   createExperience(company: String!, position: String!, startDate: String!, endDate: String, responsibilities: [String!]!): Experience!
   updateExperience(company: String!, position: String!, startDate: String!, endDate: String, responsibilities: [String!]!): Experience!
 }
+
+input UserInput {
+  id: ID!
+  name: String!
+  email: String!
+  password: String!
+  role: role!
+}
+
+input PostInput {
+  title: String!
+  content: String!
+  author: ID!
+}
+
 
  type Schema {
     query: Query
@@ -94,6 +110,12 @@ type User {
   name: String!
 }
 
+type Post {
+  id: ID!
+  title: String!
+  content: String!
+}
+
 type AuthPayload {
   token: String!
 }
@@ -104,10 +126,7 @@ enum role {
   GUEST
   }
 
-  input UserInput {
-    id: ID!
-    name: String!
-  }
+
 
   input AuthPayloadInput {
     token: String!

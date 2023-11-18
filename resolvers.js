@@ -9,7 +9,8 @@ const resolvers = {
     Query:{ 
         PersonalInfo: async (_, args) => {
             const personalInfo = await PersonalInfo.findOne({email: args.email});
-            return personalInfo;
+            return { ...personalInfo._doc, _id: personalInfo.id };
+           // return restaurants.map((r) => ({ ...r._doc 
         },
         Education: async (_, args) => {
             const education = await Education.findOne({institution: args.institution});
@@ -46,32 +47,34 @@ const resolvers = {
     //mutations
     Mutations:{
         createPersonalInfo: async (_, args) => {
-            try {
+            
+          const { name, age, email, phoneNumber, linkedIn, githubUsername, githubProfileImage, personalSiteLink, currentCity, pets } = args;
               const newPersonalInfo = new PersonalInfo({
-                name: args.name,
-                age: args.age,
-                email: args.email,
-                phoneNumber: args.phoneNumber,
-                linkedIn: args.linkedIn,
-                githubUsername: args.githubUsername,
-                githubProfileImage: args.githubProfileImage,
-                personalSiteLink: args.personalSiteLink,
-                currentCity: args.currentCity,
-                pets: args.pets,
+             name,
+              age,
+              email,
+              phoneNumber,
+              linkedIn,
+              githubUsername,
+              githubProfileImage,
+              personalSiteLink,
+              currentCity,
+              pets
               });
         
               // Save the newPersonalInfo document to the database
-              const savedPersonalInfo = await newPersonalInfo.save();
+              const savedPersonalInfo = await newPersonalInfo.save()
+              .then (result => {
+                return { ...result._doc , _id: result.id};
+            })
+            .catch (err => {
+              console.error("failled to create personalinfo", err)
+              throw new Error(err);
+               
+            })
         
-              // Return the savedPersonalInfo
               return savedPersonalInfo;
-            } catch (error) {
-              // Log the error for debugging
-              console.error('Error creating personal info:', error);
-        
-              // Throw an error to be caught by GraphQL and returned as part of the response
-              throw new Error('Failed to create personal info');
-            }
+
           },
         async updatePersonalInfo(_, args) {
             const { age, email, githubProfileImage, personalSiteLink, currentCity, pets } = args;
@@ -164,7 +167,30 @@ const resolvers = {
             })
             await newSkills.save()
             return newSkills
-    }
+    },
+    createuser: async (_, { input }) => {
+        const { name, email, password } = input;
+        const newUser = new User({
+          id: new ObjectId(),
+          role: 'admin' || 'user' || 'guest',
+          name,
+          email,
+          password,
+        });
+        await newUser.save();
+        return newUser;
+      },
+      createpost: async (_, { input }) => {
+        const { title, content, author } = input;
+        const newPost = new Post({
+          id: new ObjectId(),
+          title,
+          content,
+          author,
+        });
+        await newPost.save();
+        return newPost;
+      }
 
 }
 }

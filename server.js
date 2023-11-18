@@ -68,31 +68,22 @@ const isNotRegistered=rule()(async(parent,args,ctx,info)=>{
 )
 const permissions = shield({
   Query: {
-    personalInfo:allow,
-    education:deny,
-    experience:allow,
-    skills:allow,
-    activities:allow,
-    projects:allow,
-   
-
-    // Allow all users to view public resources
-    me:isAuthenticated,
-    // Allow all users to view public resources
-    publicResource: isGuest,
-    // Allow all authenticated users to view protected resources
-    protectedResource: isUser,
-    // Allow only admin users to view admin resources
-    adminResource: isadmin
-
+    personalInfo: isUser, // Only authenticated users can view personalInfo
+    education: deny,
+    experience: allow,
+    skills: allow,
+    activities: allow,
+    projects: isGuest, // Only guests can view projects
+    me: isAuthenticated,
+    users: isAuthenticated // Assuming that only authenticated users can view user data
   },
-  Mutation:{
-     // Require authentication for all queries
- '*': isAuthenticated,
-    createuser:isNotRegistered,
-    createpost:isadmin
+  Mutation: {
+    '*': isAuthenticated,
+    createuser: isNotRegistered,
+    createpost: isadmin
   }
 })
+
 
 // Define a function to authenticate requests
 function authenticate(req) {
