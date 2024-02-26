@@ -65,7 +65,9 @@ const resolvers = {
               // Save the newPersonalInfo document to the database
               const savedPersonalInfo = await newPersonalInfo.save()
               .then (result => {
+                console.log("PersonalInfo created successfully", result._doc)
                 return { ...result._doc , _id: result.id};
+               
             })
             .catch (err => {
               console.error("failled to create personalinfo", err)
@@ -93,18 +95,18 @@ const resolvers = {
                 await newEducation.save()
                 return newEducation
           },
-          createUser: async (_,{input} ) => {
-            const { name, email, password } = input;
+          createuser: async (_, { input }) => {
+            const { name, email, password,role=GUEST} = input;
             const newUser = new User({
-              id: new ObjectId(),
-              role: 'admin' || 'user' || 'guest',
               name,
               email,
               password,
-            });
+              role       
+               });
             await newUser.save();
+            console.log(newUser); 
             return newUser;
-          }
+          },
 
             
            /* async updateEducation(_,args){
@@ -120,7 +122,7 @@ const resolvers = {
                         return await Education.findOne(query);
                         else
                         return null;
-            }*/,
+            }*/
      createExperience: async(_,args)=>{
             const newExperience=new Experience({
                 company:args.company,
@@ -168,18 +170,6 @@ const resolvers = {
             await newSkills.save()
             return newSkills
     },
-    createuser: async (_, { input }) => {
-        const { name, email, password } = input;
-        const newUser = new User({
-          id: new ObjectId(),
-          role: 'admin' || 'user' || 'guest',
-          name,
-          email,
-          password,
-        });
-        await newUser.save();
-        return newUser;
-      },
       createpost: async (_, { input }) => {
         const { title, content, author } = input;
         const newPost = new Post({

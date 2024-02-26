@@ -27,9 +27,6 @@ const port = process.env.PORT || 4000
 const bodyParser = require("body-parser");
 //const  routes = require("./routes/routers");
 
-
-
-
 __dirname = dirname(__filename);
 
 
@@ -42,10 +39,17 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(bodyParser.json());
 
-const isAuthenticated=rule()(async(parent,args,ctx,info)=>{
+
+
+const isAuthenticated = rule({ cache: 'contextual' })(
+  async (parent, args, { user }, info) => {
+    return user !== null;
+  },
+);
+/*const isAuthenticated=rule()(async(parent,args,ctx,info)=>{
     return ctx.user!==null
 }
-)
+)*/
 
 const isadmin=rule()(async(parent,args,ctx,info)=>{
   const user=await user.find(({id})=>id===ctx.user.id)
@@ -61,13 +65,14 @@ const isUser=rule()(async(parent,args,ctx,info)=>{
   return user
 })
 
-const isNotRegistered=rule()(async(parent,args,ctx,info)=>{
-  const user = await User.find(({id}) => id === args.id);
-  return !user
-}
-)
+const isNotRegistered = rule()(async(parent, args, ctx, info) => {
+  const user = await user.findOne({ email: args.input.email });
+  return !user;
+});
+
 const permissions = shield({
   Query: {
+  
     personalInfo: isUser, // Only authenticated users can view personalInfo
     education: deny,
     experience: allow,
@@ -75,11 +80,19 @@ const permissions = shield({
     activities: allow,
     projects: isGuest, // Only guests can view projects
     me: isAuthenticated,
-    users: isAuthenticated // Assuming that only authenticated users can view user data
+    users: isAuthenticated,
+    /* { 
+       password: rule({ cache: 'contextual' })(
+      async (parent, args, { user }, info) => {
+        return user.id === parent.id;
+      },
+    ),
+  },*/
   },
   Mutation: {
-    '*': isAuthenticated,
+    '*': isAuthenticated || isadmin,  
     createuser: isNotRegistered,
+    createuser: allow, // Anyone can create a user
     createpost: isadmin
   }
 })
@@ -104,16 +117,17 @@ try{
   const typeDefs = gql(fs.readFileSync(path.resolve(__dirname, './schema.graphql'), 'utf-8'));
 
   const schema = buildSubgraphSchema({ typeDefs, resolvers,
-    context: (req) => {
-      // Call the authenticate function to verify that the request is authenticated
-      authenticate(req)
-      // Add the authenticated user to the context object, so it can be accessed by the resolver functions
-      return {
-        user: req.user,
+      context: ({req}) => {
+        if(req.path === '/graphql' && req.method === 'POST') {
+          return {} 
+        } else {
+          authenticate(req);  
+          return {user: req.user}
+        }
       }
-    },
+    })
   
-    });
+    
 
     const schemaWithMiddleware = applyMiddleware(schema,permissions)
 
@@ -143,10 +157,6 @@ app.use(
   }
 
  //  documents= typeDefs
-
-
-
-
 
 // start the Express server
 mongoose.connection.once('open',()=>{

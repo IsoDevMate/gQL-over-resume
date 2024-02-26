@@ -12,7 +12,6 @@ const typeDefs = `#graphql
   personalSiteLink: String
   currentCity: String!
   pets: [String!]!
-
 }
 
 type Education {

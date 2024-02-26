@@ -10,6 +10,7 @@ type Query {
   resume: Resume!
   me: User! @auth
   users: [User!]! 
+
 }
 
 
@@ -83,11 +84,10 @@ type Mutation {
 }
 
 input UserInput {
-  id: ID!
   name: String!
-  email: String!
+  email: String! 
   password: String!
-  role: role!
+  role: role = GUEST
 }
 
 input PostInput {

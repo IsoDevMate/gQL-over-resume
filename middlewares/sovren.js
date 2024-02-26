@@ -28,7 +28,6 @@ var options = {
       'Content-Length': Buffer.byteLength(postData)
   }
 };
- 
 var request = http.request(options, function (response) {
   console.log(`STATUS: ${response.statusCode}`);
   response.setEncoding('utf8');
