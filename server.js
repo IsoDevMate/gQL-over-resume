@@ -67,12 +67,11 @@ const isUser=rule()(async(parent,args,ctx,info)=>{
 
 const isNotRegistered = rule()(async(parent, args, ctx, info) => {
   const user = await user.findOne({ email: args.input.email });
-  return !user;
+  return !user
 });
 
 const permissions = shield({
   Query: {
-  
     personalInfo: isUser, // Only authenticated users can view personalInfo
     education: deny,
     experience: allow,
@@ -90,9 +89,9 @@ const permissions = shield({
   },*/
   },
   Mutation: {
-    '*': isAuthenticated || isadmin,  
+    '*': isAuthenticated || isadmin,
     createuser: isNotRegistered,
-    createuser: allow, // Anyone can create a user
+    createuser: allow,
     createpost: isadmin
   }
 })
@@ -126,8 +125,6 @@ try{
         }
       }
     })
-  
-    
 
     const schemaWithMiddleware = applyMiddleware(schema,permissions)
 

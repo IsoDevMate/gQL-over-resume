@@ -4,6 +4,7 @@ const { ObjectId } = require("mongodb");
 
 const {Experience,PersonalInfo,Resume,Education,Activities,Skills,Projects,User}=require('./models/schema')
 
+console.log(User)
 const resolvers = {
     //queries
     Query:{ 
@@ -36,11 +37,11 @@ const resolvers = {
             const resume=await Resume.findOne({email:args.email});
             return resume;
         },
-        User:async(_,{id,name})=>{
-            const user=await User.findOne({id,name});
-            return user;
+       User:async(_,args)=>{
+          const user=await User.findOne({email:args.email});
+          return user;
 
-        }
+      }
     },
     
     
@@ -97,18 +98,18 @@ const resolvers = {
           },
           createuser: async (_, { input }) => {
             const { name, email, password,role=GUEST} = input;
-            const newUser = new User({
-              name,
-              email,
-              password,
-              role       
-               });
-            await newUser.save();
-            console.log(newUser); 
-            return newUser;
+            try {
+              const user = await User.create(
+                { name, email, password,role }
+              );
+              console.log(user); 
+              return user;
+            } catch (err) {
+              throw new GraphQLError('Error creating user'); 
+            }
           },
 
-            
+
            /* async updateEducation(_,args){
                 const educationindex=Education.findIndex(education=>education.institution===args.institution)
                 if (educationindex === -1) throw new Error('INstitution not found')
